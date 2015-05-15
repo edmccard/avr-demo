@@ -33,7 +33,7 @@ func main() {
 	ticker := time.NewTicker(20 * time.Millisecond)
 	quit := make(chan struct{})
 
-	spk, err := NewSpeaker(timer, 1020484)
+	spk, err := NewSpeaker(timer, 1020500)
 	if err != nil {
 		fmt.Println("ERROR:", err)
 		return
@@ -48,12 +48,12 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-				for cycles < 20000 {
+				for cycles < 20410 {
 					elapsed = cpu.Step(mem, &decoder)
 					cycles += elapsed
 					timer.Tick(int64(elapsed))
 				}
-				cycles -= 20000
+				cycles -= 20410
 				if !started {
 					err = spk.Start()
 					if err != nil {
