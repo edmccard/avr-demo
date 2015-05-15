@@ -8,7 +8,7 @@ import (
 type Speaker struct {
 	stream       *portaudio.Stream
 	channel      chan float32
-	timer        *Timer
+	timer        *core.Timer
 	curSample    float32
 	avgBuf       []float32
 	avgIdx       int
@@ -17,7 +17,7 @@ type Speaker struct {
 	lastToggle   int64
 }
 
-func NewSpeaker(timer *Timer, hertz uint) (*Speaker, error) {
+func NewSpeaker(timer *core.Timer, hertz uint) (*Speaker, error) {
 	spk := &Speaker{curSample: -1.0}
 	host, err := portaudio.DefaultHostApi()
 	if err != nil {

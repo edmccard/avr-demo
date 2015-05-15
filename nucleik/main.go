@@ -9,18 +9,6 @@ import (
 	"time"
 )
 
-type Timer struct {
-	cycleCount int64
-}
-
-func (t *Timer) Tick(cycles int64) {
-	t.cycleCount += cycles
-}
-
-func (t *Timer) GetCount() int64 {
-	return t.cycleCount
-}
-
 func main() {
 	portaudio.Initialize()
 	defer portaudio.Terminate()
@@ -28,7 +16,7 @@ func main() {
 	cpu := core.Cpu{}
 	mem := NewDemoMem(&cpu, strings.NewReader(program))
 	decoder := instr.NewDecoder(instr.NewSetEnhanced8k())
-	timer := &Timer{}
+	timer := &core.Timer{}
 
 	ticker := time.NewTicker(20 * time.Millisecond)
 	quit := make(chan struct{})
