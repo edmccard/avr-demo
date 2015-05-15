@@ -8,6 +8,7 @@ import (
 type Speaker struct {
 	stream       *portaudio.Stream
 	channel      chan float32
+	timer        *Timer
 	curSample    float32
 	avgBuf       []float32
 	avgIdx       int
@@ -16,7 +17,7 @@ type Speaker struct {
 	lastToggle   int64
 }
 
-func NewSpeaker(hertz uint) (*Speaker, error) {
+func NewSpeaker(timer *Timer, hertz uint) (*Speaker, error) {
 	spk := &Speaker{curSample: -1.0}
 	host, err := portaudio.DefaultHostApi()
 	if err != nil {
@@ -29,6 +30,7 @@ func NewSpeaker(hertz uint) (*Speaker, error) {
 	if err != nil {
 		return nil, err
 	}
+	spk.timer = timer
 	spk.cycPerSample = hertz / uint(parameters.SampleRate)
 	spk.channel = make(chan float32, 8192)
 	spk.avgBuf = make([]float32, spk.cycPerSample)
@@ -61,12 +63,12 @@ func (spk *Speaker) write(addr core.Addr, val byte) {
 		return
 	}
 	spk.pin = val
-	// TODO: cycleCount is a global variable. Fix?
-	spk.makeSamples(cycleCount)
+	spk.makeSamples()
 	spk.curSample *= -1.0
 }
 
-func (spk *Speaker) makeSamples(curCycle int64) {
+func (spk *Speaker) makeSamples() {
+	curCycle := spk.timer.GetCount()
 	elapsed := curCycle - spk.lastToggle
 	spk.lastToggle = curCycle
 

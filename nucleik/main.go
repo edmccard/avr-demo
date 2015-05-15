@@ -9,7 +9,17 @@ import (
 	"time"
 )
 
-var cycleCount int64
+type Timer struct {
+	cycleCount int64
+}
+
+func (t *Timer) Tick(cycles int64) {
+	t.cycleCount += cycles
+}
+
+func (t *Timer) GetCount() int64 {
+	return t.cycleCount
+}
 
 func main() {
 	portaudio.Initialize()
@@ -18,11 +28,12 @@ func main() {
 	cpu := core.Cpu{}
 	mem := NewDemoMem(&cpu, strings.NewReader(program))
 	decoder := instr.NewDecoder(instr.NewSetEnhanced8k())
+	timer := &Timer{}
 
 	ticker := time.NewTicker(20 * time.Millisecond)
 	quit := make(chan struct{})
 
-	spk, err := NewSpeaker(1020484)
+	spk, err := NewSpeaker(timer, 1020484)
 	if err != nil {
 		fmt.Println("ERROR:", err)
 		return
@@ -40,7 +51,7 @@ func main() {
 				for cycles < 20000 {
 					elapsed = cpu.Step(mem, &decoder)
 					cycles += elapsed
-					cycleCount += int64(elapsed)
+					timer.Tick(int64(elapsed))
 				}
 				cycles -= 20000
 				if !started {
