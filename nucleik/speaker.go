@@ -13,7 +13,7 @@ type Speaker struct {
 	avgIdx       int
 	cycPerSample uint
 	pin          byte
-	lastToggle   uint64
+	lastToggle   int64
 	dbgCount     int
 }
 
@@ -68,7 +68,7 @@ func (spk *Speaker) write(addr core.Addr, val byte) {
 	spk.curSample *= -1.0
 }
 
-func (spk *Speaker) makeSamples(curCycle uint64) {
+func (spk *Speaker) makeSamples(curCycle int64) {
 	elapsed := curCycle - spk.lastToggle
 	spk.lastToggle = curCycle
 
@@ -91,11 +91,11 @@ func (spk *Speaker) makeSamples(curCycle uint64) {
 		}
 	}
 
-	for i := uint64(0); i < elapsed/uint64(spk.cycPerSample); i++ {
+	for i := int64(0); i < elapsed/int64(spk.cycPerSample); i++ {
 		spk.sendSample(spk.curSample)
 	}
 
-	avgCycs := elapsed % uint64(spk.cycPerSample)
+	avgCycs := elapsed % int64(spk.cycPerSample)
 	if avgCycs != 0 {
 		for spk.avgIdx = 0; spk.avgIdx < int(avgCycs); spk.avgIdx++ {
 			spk.avgBuf[spk.avgIdx] = spk.curSample

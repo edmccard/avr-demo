@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var cycleCount uint64
+var cycleCount int64
 
 func main() {
 	portaudio.Initialize()
@@ -40,7 +40,7 @@ func main() {
 				for cycles < 20000 {
 					elapsed = cpu.Step(mem, &decoder)
 					cycles += elapsed
-					cycleCount += uint64(elapsed)
+					cycleCount += int64(elapsed)
 				}
 				cycles -= 20000
 				if !started {
