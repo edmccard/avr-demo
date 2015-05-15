@@ -14,7 +14,6 @@ type Speaker struct {
 	cycPerSample uint
 	pin          byte
 	lastToggle   int64
-	dbgCount     int
 }
 
 func NewSpeaker(hertz uint) (*Speaker, error) {
@@ -54,7 +53,6 @@ func (spk *Speaker) Callback(out []float32) {
 			out[i] = 0
 		}
 	}
-	spk.dbgCount = 0
 }
 
 func (spk *Speaker) write(addr core.Addr, val byte) {
@@ -106,7 +104,6 @@ func (spk *Speaker) makeSamples(curCycle int64) {
 func (spk *Speaker) sendSample(sample float32) {
 	select {
 	case spk.channel <- sample:
-		spk.dbgCount++
 	default:
 	}
 }
