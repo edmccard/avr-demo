@@ -1,65 +1,33 @@
 package main
 
 import (
-	"code.google.com/p/portaudio-go/portaudio"
 	"fmt"
-	"github.com/edmccard/avr-sim/core"
-	"github.com/edmccard/avr-sim/instr"
 	"strings"
 	"time"
+
+	"code.google.com/p/portaudio-go/portaudio"
+	"github.com/edmccard/avr-sim/atmega8"
+	"github.com/edmccard/avr-sim/dev"
 )
 
 func main() {
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
-	cpu := core.Cpu{}
-	mem := NewDemoMem(&cpu, strings.NewReader(program))
-	decoder := instr.NewDecoder(instr.NewSetEnhanced8k())
-	timer := &core.Timer{}
+	sys := atmega8.NewSystem()
+	sys.LoadProgHex(strings.NewReader(program))
 
-	ticker := time.NewTicker(20 * time.Millisecond)
-	quit := make(chan struct{})
-
-	spk, err := NewSpeaker(timer, 1020500)
+	spk, err := dev.NewSpeaker(sys.Timer, 1020500, 0)
 	if err != nil {
 		fmt.Println("ERROR:", err)
 		return
 	}
-	mem.outports[0x38] = spk.write
+	sys.Memory.SetWriter(0x38, spk.Write)
 
-	go func() {
-		cycles := uint(0)
-		elapsed := uint(0)
-		started := false
-
-		for {
-			select {
-			case <-ticker.C:
-				for cycles < 20410 {
-					elapsed = cpu.Step(mem, &decoder)
-					cycles += elapsed
-					timer.Tick(int64(elapsed))
-				}
-				cycles -= 20410
-				if !started {
-					err = spk.Start()
-					if err != nil {
-						fmt.Println("ERROR:", err)
-						return
-					}
-					started = true
-				}
-			case <-quit:
-				ticker.Stop()
-				spk.Stop()
-				return
-			}
-		}
-	}()
-
+	quit := sys.Go(1020500, 50, spk.OnSlice)
 	time.Sleep(142 * time.Second)
 	close(quit)
+	spk.Stop()
 }
 
 const program = `
